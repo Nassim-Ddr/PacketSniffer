@@ -4,6 +4,6 @@ public class App {
     }
 
     public static void startApp() {
-
+        TraceManager.loadFile();
     }
 }
