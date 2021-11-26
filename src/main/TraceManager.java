@@ -48,7 +48,7 @@ public class TraceManager {
             e.printStackTrace();
         }
         try {
-            resultFileWriter = new FileWriter(TraceManager.resultFile.getAbsolutePath());
+            resultFileWriter = new FileWriter(resultFile);
         } catch (IOException e) {
             e.printStackTrace();
         }

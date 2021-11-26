@@ -1,5 +1,6 @@
 package Layer3;
 
+import Layer4.Layer4;
 import com.sun.deploy.trace.Trace;
 import main.TraceManager;
 
@@ -38,6 +39,12 @@ public class Ip {
         checkSum = TraceManager.getByteInRange(trame, 11, 12);
         srcAdr = TraceManager.getByteInRange(trame, 13, 16);
         desAdr = TraceManager.getByteInRange(trame, 17, 20);
+
+        int headerLength = Integer.parseInt(ihl, 16) * 4;
+        if (headerLength > 20) opt = TraceManager.getByteInRange(trame, 21, headerLength);
+        else opt = "None";
+
+        data = TraceManager.getMissingBytes(trame, headerLength + 1 );
         //ADD HERE THE CODE TO LOAD THE OPTIONS
         //U NEED TO :
         //1-Calculate how much byte u have in the options through the total length in byte - 20 for the min
@@ -65,8 +72,11 @@ public class Ip {
         System.out.println("\tTTL : " + ttl + "\n");
         System.out.println("\tProtocol : " + protocol + "\n"); //CREATE HASHMAP WITH HEX AND STRING
         System.out.println("\tChecksum : " + checkSum + "\n");
-        System.out.println("\tSrcAdr : " + srcAdr + "\n"); //Display DEC
+        System.out.println("\tSrcAdr : " + srcAdr + "\n"); //Display SRC
         System.out.println("\tDesAdr : " + desAdr + "\n"); //Display DEC
+        System.out.println("\tOptions : " + opt + "\n"); //Display the different options one by one
+        System.out.println("\tData : " + data + "\n");
+
     }
 
     public void writeResult() throws IOException {
@@ -82,10 +92,14 @@ public class Ip {
         TraceManager.resultFileWriter.write("\tChecksum : " + checkSum + "\n");
         TraceManager.resultFileWriter.write("\tSrcAdr : " + srcAdr + "\n");
         TraceManager.resultFileWriter.write("\tDesAdr : " + desAdr + "\n");
+        TraceManager.resultFileWriter.write("\tOptions : " + opt + "\n");
+        TraceManager.resultFileWriter.write("\tData : " + data + "\n");
+
     }
 
     public void nextLayer() {
         //Calls NextLayer
+        Layer4.toLayer(data);
     }
 
     public String getVersion() {
