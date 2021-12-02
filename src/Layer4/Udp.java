@@ -46,6 +46,7 @@ public class Udp {
         TraceManager.resultFileWriter.write("\tLength : " + length + "\n");
         TraceManager.resultFileWriter.write("\tChecksum : " + checkSum + "\n");
         TraceManager.resultFileWriter.write("\tdata (udp payload) : " + data + "\n");
+
     }
 
     public void nextLayer() {
