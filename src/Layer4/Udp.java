@@ -1,5 +1,6 @@
 package Layer4;
 
+import Layer7.Layer7;
 import main.TraceManager;
 
 import java.io.IOException;
@@ -35,7 +36,7 @@ public class Udp {
         System.out.println("\tDestination port : " + desPrt + "\n");
         System.out.println("\tLength : " + length + "\n");
         System.out.println("\tChecksum : " + checkSum + "\n");
-        System.out.println("\tdata (udp payload) : " + data + "\n");
+        //System.out.println("\tdata (udp payload) : " + data + "\n");
 
     }
 
@@ -45,12 +46,13 @@ public class Udp {
         TraceManager.resultFileWriter.write("\tDestination port : " + desPrt + "\n");
         TraceManager.resultFileWriter.write("\tLength : " + length + "\n");
         TraceManager.resultFileWriter.write("\tChecksum : " + checkSum + "\n");
-        TraceManager.resultFileWriter.write("\tdata (udp payload) : " + data + "\n");
+        //TraceManager.resultFileWriter.write("\tdata (udp payload) : " + data + "\n");
 
     }
 
     public void nextLayer() {
 
+        Layer7.toLayer(data, srcPrt, desPrt);
     }
 
     public String getSrcPrt() {

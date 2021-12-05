@@ -1,10 +1,14 @@
 package Layer3;
 
 import Layer4.Layer4;
-import com.sun.deploy.trace.Trace;
 import main.TraceManager;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Ip {
 
@@ -20,13 +24,32 @@ public class Ip {
     private String srcAdr;
     private String desAdr;
     private String opt;
+        private String optToDisplay;
     private String data;
+
+    public static Map<String, String> ipOptions  = new HashMap<String, String>() {{
+        //Planning on putting options
+        put("00", "END OF OPTION LIST");
+        put("01", "NO OPERATION");
+        put("07", "RECORD ROUTE");
+    }};
+
+    public static Map<String, String> ipProtocols  = new HashMap<String, String>() {{
+        //Planning on putting options
+        put("01", "ICMP");
+        put("02", "IGMP");
+        put("06", "TCP");
+        put("08", "EGP");
+        put("09", "IGP");
+        put("11", "UDP");
+        put("24", "XTP");
+        put("2E", "RSVP");
+    }};
 
     public Ip() { }
 
     public Ip(String trame) {
         //Init the parameters.
-        System.out.println("SOSIG : " + trame );
         version = TraceManager.getByte(trame, 1);
         ihl = String.valueOf(version.charAt(1));
         version = String.valueOf(version.charAt(0));
@@ -44,6 +67,8 @@ public class Ip {
         if (headerLength > 20) opt = TraceManager.getByteInRange(trame, 21, headerLength);
         else opt = "None";
 
+        handleOptions();
+
         data = TraceManager.getMissingBytes(trame, headerLength + 1 );
         //ADD HERE THE CODE TO LOAD THE OPTIONS
         //U NEED TO :
@@ -52,6 +77,43 @@ public class Ip {
         //Display the options
         //Init the Data var
         //Display data
+    }
+
+    private void handleOptions() {
+        List<String> options = new ArrayList<>();
+        int optionLength = Integer.parseInt(ihl, 16) * 4 - 20;
+        int i = 1;
+        while (i <= optionLength) {
+            String option = TraceManager.getByte(opt, i);
+            if (Integer.parseInt(option, 16) > 1) {
+                int optionSize = Integer.parseInt(TraceManager.getByte(opt, i+1), 16);
+                option = TraceManager.getByteInRange(opt, i, optionSize);
+                i = optionSize + 1;
+            } else {
+                i ++;
+            }
+            options.add(option);
+        }
+
+        String toPrint = "";
+        int optIndex = 1;
+        for(String s : options ) {
+            String firstByte = TraceManager.getByte(s, 1);
+            String toPrintOpt = "";
+            toPrintOpt += "Option " +optIndex + ": "+ ipOptions.get(firstByte) +  "(" +firstByte + ")"+ " \n";
+
+            if (Integer.parseInt(firstByte) > 1) {
+                //RECORD ROUTE
+                toPrintOpt += "\t\t length : " + TraceManager.getByte(s, 2) + "\n";
+                toPrintOpt += "\t\t pointer : " + TraceManager.getByte(s, 3) + "\n";
+                for (int j = 4; j<40; j+=4) {
+                    toPrintOpt += "\t\t ip "+j/4+" : " + TraceManager.getByteInRange(s, j, j+3) + "\n";
+                }
+            }
+            toPrint += "\t" + toPrintOpt;
+            optIndex +=1;
+        }
+        optToDisplay = toPrint;
     }
 
     public void display() {
@@ -64,8 +126,8 @@ public class Ip {
 
         System.out.println("Ip : ");
         System.out.println("\tVersion : " + version + "\n");  //CREATE HASHMAP WITH HEX AND STRING
-        System.out.println("\tIHL : " + ihl + "\n"); //CREATE HASHMAP WITH HEX AND STRING
-        System.out.println("\tTOS : " + tos + "\n"); //CREATE HASHMAP WITH HEX AND STRING
+        System.out.println("\tIHL : " + ihl + "\n");
+        System.out.println("\tTOS : " + tos + "\n");
         System.out.println("\tTotal length : " + totalLength + "\n");
         System.out.println("\tIdentification : " + id + "\n");
         System.out.println("\tFragmentOffset : " + flagsFragmentOffset + "\n"); //DISPLAY ALSO FLAGS
@@ -74,9 +136,9 @@ public class Ip {
         System.out.println("\tChecksum : " + checkSum + "\n");
         System.out.println("\tSrcAdr : " + srcAdr + "\n"); //Display SRC
         System.out.println("\tDesAdr : " + desAdr + "\n"); //Display DEC
-        System.out.println("\tOptions : " + opt + "\n"); //Display the different options one by one
-        System.out.println("\tData : " + data + "\n");
-
+        System.out.println("\tOptions : " + /*opt +*/ "\n"); //Display the different options one by one
+        System.out.println(optToDisplay + "\n");
+        //System.out.println("\tData : " + data + "\n");
     }
 
     public void writeResult() throws IOException {
@@ -92,8 +154,9 @@ public class Ip {
         TraceManager.resultFileWriter.write("\tChecksum : " + checkSum + "\n");
         TraceManager.resultFileWriter.write("\tSrcAdr : " + srcAdr + "\n");
         TraceManager.resultFileWriter.write("\tDesAdr : " + desAdr + "\n");
-        TraceManager.resultFileWriter.write("\tOptions : " + opt + "\n");
-        TraceManager.resultFileWriter.write("\tData : " + data + "\n");
+        TraceManager.resultFileWriter.write("\tOptions : " + /*opt +*/ "\n");
+        TraceManager.resultFileWriter.write(optToDisplay + "\n");
+        //TraceManager.resultFileWriter.write("\tData : " + data + "\n");
 
     }
 

@@ -2,7 +2,10 @@ package Layer7;
 
 import main.TraceManager;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Dhcp {
@@ -17,12 +20,13 @@ public class Dhcp {
     private static String clientIpAdr;
     private static String urIpAdr;
     private static String serverIpAdr;
-    private static String gatewayIp; //relyagent in wireshark
+    private static String relayIp; //relyagent in wireshark
     private static String clientHardwareAdr;
     private static String serverName;
     private static String bootfileName;
     private static String magicCookie;
     private static String options;
+    private String optionsToDisplay;
 
 
     public Dhcp() { }
@@ -37,20 +41,92 @@ public class Dhcp {
         clientIpAdr = TraceManager.getByteInRange(trame, 13, 16);
         urIpAdr = TraceManager.getByteInRange(trame, 17, 20);
         serverIpAdr = TraceManager.getByteInRange(trame, 21, 24);
-        gatewayIp = TraceManager.getByteInRange(trame, 25, 28);
+        relayIp = TraceManager.getByteInRange(trame, 25, 28);
         clientHardwareAdr = TraceManager.getByteInRange(trame,29, 44);
         serverName = TraceManager.getByteInRange(trame, 45, 108);
         bootfileName = TraceManager.getByteInRange(trame, 109, 236);
-        magicCookie = TraceManager.getByte(trame, 237);
-        options = TraceManager.getMissingBytes(trame, 238);
+        magicCookie = TraceManager.getByteInRange(trame, 237, 240);
+        options = TraceManager.getMissingBytes(trame, 241);
+        handleOptions();
     }
 
     public void display() {
 
+        try {
+            writeResult();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("DHCP : ");
+        System.out.println("\tOperation code : " + opCode);
+        System.out.println("\tHardware type : " + hardwareType);
+        System.out.println("\tHardware address length : " + hardwareAdrLength);
+        System.out.println("\tHops : " + hops);
+        System.out.println("\tTransaction ID : " + transactionId);
+        System.out.println("\tSeconds : " + seconds);
+        System.out.println("\tFlags : " + flags);
+        System.out.println("\tClient IP : " + clientIpAdr);
+        System.out.println("\tYour IP : " + urIpAdr);
+        System.out.println("\tNext serveur IP : " + serverIpAdr);
+        System.out.println("\tRelay agent IP : " + relayIp);
+        System.out.println("\tClient MAC : " + clientHardwareAdr); //THERE IS PADDING HERE
+        System.out.println("\tServer name : " + serverName);
+        System.out.println("\tBoot file name : " + bootfileName);
+        System.out.println("\tMagic cookie : " + magicCookie);
+
+        System.out.println("\tOptions : \n" + optionsToDisplay);
+
+        System.out.println("\t");
     }
 
-    public void writeResult() {
+    private void handleOptions() {
+        int i = 1;
+        List<String> optionList = new ArrayList<>();
+        while (i <= options.length()) {
+            String option = TraceManager.getByte(options, i);
+            if (option.equals("ff")) i=options.length()+1;
+            else {
+                int optionLength = Integer.parseInt(TraceManager.getByte(options, i+1), 16);
+                option = TraceManager.getByteInRange(options, i, i+optionLength+1);
+                i += optionLength+2;
 
+            }
+            optionList.add(option);
+        }
+
+        String toPrint = "";
+        int optIndex = 1;
+        for (String option : optionList) {
+            String firstByte = TraceManager.getByte(option,1);
+            toPrint += "\tOption " + optIndex + " :" + DhcpOptions.get(firstByte) + "("+ firstByte +")\n";
+            if (!firstByte.equals("ff")) {
+                toPrint += "\t\tLength : " + TraceManager.getByte(option, 2) + "\n";
+                toPrint += "\t\tValue : " + TraceManager.getMissingBytes(option, 3) + "\n\n";
+            }
+            optIndex++;
+        }
+        optionsToDisplay = toPrint;
+    }
+
+    public void writeResult() throws IOException{
+        TraceManager.resultFileWriter.write("DHCP : ");
+        TraceManager.resultFileWriter.write("\tOperation code : " + opCode + "\n");
+        TraceManager.resultFileWriter.write("\tHardware type : " + hardwareType + "\n");
+        TraceManager.resultFileWriter.write("\tHardware address length : " + hardwareAdrLength + "\n");
+        TraceManager.resultFileWriter.write("\tHops : " + hops + "\n");
+        TraceManager.resultFileWriter.write("\tTransaction ID : " + transactionId + "\n");
+        TraceManager.resultFileWriter.write("\tSeconds : " + seconds + "\n");
+        TraceManager.resultFileWriter.write("\tFlags : " + flags + "\n");
+        TraceManager.resultFileWriter.write("\tClient IP : " + clientIpAdr + "\n");
+        TraceManager.resultFileWriter.write("\tYour IP : " + urIpAdr + "\n");
+        TraceManager.resultFileWriter.write("\tNext serveur IP : " + serverIpAdr + "\n");
+        TraceManager.resultFileWriter.write("\tRelay agent IP : " + relayIp + "\n");
+        TraceManager.resultFileWriter.write("\tClient MAC : " + clientHardwareAdr + "\n");
+        TraceManager.resultFileWriter.write("\tServer name : " + serverName + "\n");
+        TraceManager.resultFileWriter.write("\tBoot file name : " + bootfileName + "\n");
+        TraceManager.resultFileWriter.write("\tMagic cookie : " + magicCookie + "\n");
+        TraceManager.resultFileWriter.write("\tOptions : \n" + optionsToDisplay + "\n");
     }
 
     public void nextLayer() {
@@ -69,17 +145,18 @@ public class Dhcp {
         put("08", "DHCP INFORM");
     }};
 
-    public static Map<String, String[]> DhcpOptions  = new HashMap<String, String[]>() {{
+    public static Map<String, String> DhcpOptions  = new HashMap<String, String>() {{
         //Map of an array : <Key of the options, length of the option, value of options>
-        put("35", new String[] {"TYPE"});
-        put("3d", new String[] {"CLIENT IDENTIFIER"});
-        put("32", new String[] {"REQUEST IP ADDRESS"});
-        put("37", new String[] {"DHCP DECLINE"});
-        put("ff", new String[] {"END"});
-        put("3a", new String[] {"RENEWAL TIME VALUE"});
-        put("3b", new String[] {"REBINDING TIME VALUE"});
-        put("33", new String[] {"IP ADDRESS LEASE TIME"});
-        put("36", new String[] {"DHCP SERVER IDENTIFIER"});
+        put("35", "TYPE");
+        put("01", "SUBNET MASK");
+        put("3d", "CLIENT IDENTIFIER");
+        put("32", "REQUEST IP ADDRESS");
+        put("37", "DHCP DECLINE");
+        put("ff", "END");
+        put("3a", "RENEWAL TIME VALUE");
+        put("3b", "REBINDING TIME VALUE");
+        put("33", "IP ADDRESS LEASE TIME");
+        put("36", "DHCP SERVER IDENTIFIER");
     }};
 
     public static String getOpCode() {
@@ -162,12 +239,12 @@ public class Dhcp {
         Dhcp.serverIpAdr = serverIpAdr;
     }
 
-    public static String getGatewayIp() {
-        return gatewayIp;
+    public static String getRelayIp() {
+        return relayIp;
     }
 
-    public static void setGatewayIp(String gatewayIp) {
-        Dhcp.gatewayIp = gatewayIp;
+    public static void setRelayIp(String relayIp) {
+        Dhcp.relayIp = relayIp;
     }
 
     public static String getClientHardwareAdr() {

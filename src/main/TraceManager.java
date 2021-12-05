@@ -100,8 +100,8 @@ public class TraceManager {
         final int[] i = {1};
         tramesString.forEach(trame -> {
             try {
-                System.out.println("Trame " + i[0] + " : \n ");
-                resultFileWriter.write("Trame " + i[0] + " : \n");
+                System.out.println("Trame " + i[0] + " : +++++++++++++++++++++++++++++++++++++++++++++++++++\n ");
+                resultFileWriter.write("Trame " + i[0] + " : +++++++++++++++++++++++++++++++++++++++++++++++++++\n");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -128,7 +128,6 @@ public class TraceManager {
         if (j == 1) realIndexJ = 0;
         else realIndexJ = (j-1) * 3 + 2;
 
-
         return trame.substring(realIndexI, realIndexJ);
     }
 
@@ -137,7 +136,15 @@ public class TraceManager {
         if (i == 1) realIndexI = 0;
         else realIndexI = (i-1)*3;
 
-        return trame.substring(realIndexI, trame.length() - 1);
+        return trame.substring(realIndexI);
+    }
+
+    public static String hexToIP(String hex) {
+        if (hex.length() != 11) {
+            System.out.println("ERREUR HEXTOIP : STRING DOES NOT CORRESPOND TO AN IP");
+            return null;
+        }
+        return Integer.parseInt(getByte(hex, 1), 16) + "." + Integer.parseInt(getByte(hex, 2), 16) + "." + Integer.parseInt(getByte(hex, 3), 16) + "." + Integer.parseInt(getByte(hex, 4), 16);
     }
 
 }

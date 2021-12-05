@@ -15,6 +15,7 @@ public class Ethernet {
     public Ethernet() { }
 
     public Ethernet(String trame) {
+        //trame = "08 00 20 0A AC 96 08 00 20 0A 70 66 08 00 4F 00 00 7C CB C9 00 00 FF 01 B9 7F 84 E3 3D 05 C0 21 9F 06 07 27 04 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 33 00 08 00 A2 56 2F 00 00 00 29 36 8C 41 00 03 86 2B 08 09 0A 0B 0C 0D 0E 0F 10 11 12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F 20 21 22 23 24 25 26 27 28 29 2A 2B 2C 2D 2E 2F 30 31 32 33 34 35 36 37";
         desAdr = TraceManager.getByteInRange(trame, 1, 6);
         srcAdr = TraceManager.getByteInRange(trame, 7, 12);
         type = TraceManager.getByteInRange(trame, 13, 14);
@@ -34,7 +35,7 @@ public class Ethernet {
         System.out.println("\tSource address : " + desAdr + "\n"); //DISPLAY IN AA:AA:AA:AA:AA:AA
         System.out.println("\tDestination address : " + desAdr + "\n"); //DISPLAY IN AA:AA:AA:AA:AA:AA
         System.out.println("\tType : " + type + "\n"); //CREATE HASHMAP WITH HEX AND STRING
-        System.out.println("\tData : " + data + "\n");
+        //System.out.println("\tData : " + data + "\n");
 
 
 
@@ -45,7 +46,7 @@ public class Ethernet {
         TraceManager.resultFileWriter.write("\tSource address : " + desAdr + "\n");
         TraceManager.resultFileWriter.write("\tDestination address : " + desAdr + "\n");
         TraceManager.resultFileWriter.write("\tType : " + type + "\n");
-        TraceManager.resultFileWriter.write("\tData : " + data + "\n");
+        //TraceManager.resultFileWriter.write("\tData : " + data + "\n");
     }
 
     public void nextLayer() {
