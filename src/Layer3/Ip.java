@@ -125,18 +125,18 @@ public class Ip {
         }
 
         System.out.println("Ip : ");
-        System.out.println("\tVersion : " + version + "\n");  //CREATE HASHMAP WITH HEX AND STRING
-        System.out.println("\tIHL : " + ihl + "\n");
+        System.out.println("\tVersion : " + version + "\n");
+        System.out.println("\tIHL : " + ihl + " (" + Integer.parseInt(ihl.replace(" ", ""), 16)*4 + " bytes)");
         System.out.println("\tTOS : " + tos + "\n");
-        System.out.println("\tTotal length : " + totalLength + "\n");
+        System.out.println("\tTotal length : " + totalLength + " (" + Integer.parseInt(totalLength.replace(" ", ""), 16) + ")");
         System.out.println("\tIdentification : " + id + "\n");
-        System.out.println("\tFragmentOffset : " + flagsFragmentOffset + "\n"); //DISPLAY ALSO FLAGS
-        System.out.println("\tTTL : " + ttl + "\n");
-        System.out.println("\tProtocol : " + protocol + "\n"); //CREATE HASHMAP WITH HEX AND STRING
-        System.out.println("\tChecksum : " + checkSum + "\n");
-        System.out.println("\tSrcAdr : " + srcAdr + "\n"); //Display SRC
-        System.out.println("\tDesAdr : " + desAdr + "\n"); //Display DEC
-        System.out.println("\tOptions : " + /*opt +*/ "\n"); //Display the different options one by one
+        System.out.println("\tFragmentOffset : " + flagsFragmentOffset);
+        System.out.println("\tTTL : " + ttl + " (" + Integer.parseInt(ttl.replace(" ", ""), 16) + ")");
+        System.out.println("\tProtocol : " + protocol + " (" + ipProtocols.get(protocol) +")"); //CREATE HASHMAP WITH HEX AND STRING
+        System.out.println("\tChecksum : " + checkSum);
+        System.out.println("\tSrcAdr : " + srcAdr + " (" +TraceManager.hexToIP(srcAdr) + ")"); //Display SRC
+        System.out.println("\tDesAdr : " + desAdr + " (" +TraceManager.hexToIP(desAdr) + ")"); //Display DEC
+        System.out.println("\tOptions : " /*+ opt +*/); //Display the different options one by one
         System.out.println(optToDisplay + "\n");
         //System.out.println("\tData : " + data + "\n");
     }
@@ -144,16 +144,16 @@ public class Ip {
     public void writeResult() throws IOException {
         TraceManager.resultFileWriter.write("IP : \n");
         TraceManager.resultFileWriter.write("\tVersion : " + version + "\n");
-        TraceManager.resultFileWriter.write("\tIHL : " + ihl + "\n");
+        TraceManager.resultFileWriter.write("\tIHL : " + ihl + " (" + Integer.parseInt(ihl.replace(" ", ""), 16)*4 + " bytes)"+"\n");
         TraceManager.resultFileWriter.write("\tTOS : " + tos + "\n");
-        TraceManager.resultFileWriter.write("\tTotal length : " + totalLength + "\n");
+        TraceManager.resultFileWriter.write("\tTotal length : " + totalLength + totalLength + " (" + Integer.parseInt(totalLength.replace(" ", ""), 16) + ")"+"\n");
         TraceManager.resultFileWriter.write("\tIdentification : " + id + "\n");
         TraceManager.resultFileWriter.write("\tFragmentOffset : " + flagsFragmentOffset + "\n");
-        TraceManager.resultFileWriter.write("\tTTL : " + ttl + "\n");
-        TraceManager.resultFileWriter.write("\tProtocol : " + protocol + "\n");
+        TraceManager.resultFileWriter.write("\tTTL : " + ttl + " (" + Integer.parseInt(ttl.replace(" ", ""), 16) + ")"+ "\n");
+        TraceManager.resultFileWriter.write("\tProtocol : " + protocol + " (" + ipProtocols.get(protocol) +")"+"\n");
         TraceManager.resultFileWriter.write("\tChecksum : " + checkSum + "\n");
-        TraceManager.resultFileWriter.write("\tSrcAdr : " + srcAdr + "\n");
-        TraceManager.resultFileWriter.write("\tDesAdr : " + desAdr + "\n");
+        TraceManager.resultFileWriter.write("\tSrcAdr : " + srcAdr + " (" +TraceManager.hexToIP(srcAdr) + ")" +"\n");
+        TraceManager.resultFileWriter.write("\tDesAdr : " + desAdr + " (" +TraceManager.hexToIP(desAdr) + ")"+"\n");
         TraceManager.resultFileWriter.write("\tOptions : " + /*opt +*/ "\n");
         TraceManager.resultFileWriter.write(optToDisplay + "\n");
         //TraceManager.resultFileWriter.write("\tData : " + data + "\n");
@@ -162,7 +162,7 @@ public class Ip {
 
     public void nextLayer() {
         //Calls NextLayer
-        Layer4.toLayer(data);
+        Layer4.toLayer(data,protocol);
     }
 
     public String getVersion() {

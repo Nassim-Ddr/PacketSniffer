@@ -3,6 +3,8 @@ import Layer3.Layer3;
 import main.TraceManager;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class Ethernet {
@@ -11,6 +13,12 @@ public class Ethernet {
     private String srcAdr;
     private String type;
     private String data;
+
+    public static Map<String, String> types  = new HashMap<String, String>() {{
+        //Planning on putting options
+        put("08 00", "IPV4");
+
+    }};
 
     public Ethernet() { }
 
@@ -32,9 +40,9 @@ public class Ethernet {
 
         //Display parameters in a formatted way.
         System.out.println("ETHERNET : ");
-        System.out.println("\tSource address : " + desAdr + "\n"); //DISPLAY IN AA:AA:AA:AA:AA:AA
-        System.out.println("\tDestination address : " + desAdr + "\n"); //DISPLAY IN AA:AA:AA:AA:AA:AA
-        System.out.println("\tType : " + type + "\n"); //CREATE HASHMAP WITH HEX AND STRING
+        System.out.println("\tSource address : " + desAdr.replace(" ", ":") + "\n"); //DISPLAY IN AA:AA:AA:AA:AA:AA
+        System.out.println("\tDestination address : " + desAdr.replace(" ", ":") + "\n"); //DISPLAY IN AA:AA:AA:AA:AA:AA
+        System.out.println("\tType : " + type + " (" + types.get(type) + ")\n"); //CREATE HASHMAP WITH HEX AND STRING
         //System.out.println("\tData : " + data + "\n");
 
 
@@ -43,15 +51,15 @@ public class Ethernet {
 
     public void writeResult() throws IOException {
         TraceManager.resultFileWriter.write("Ethernet : \n");
-        TraceManager.resultFileWriter.write("\tSource address : " + desAdr + "\n");
-        TraceManager.resultFileWriter.write("\tDestination address : " + desAdr + "\n");
-        TraceManager.resultFileWriter.write("\tType : " + type + "\n");
+        TraceManager.resultFileWriter.write("\tSource address : " + desAdr.replace(" ", ":") + "\n");
+        TraceManager.resultFileWriter.write("\tDestination address : " + desAdr.replace(" ", ":") + "\n");
+        TraceManager.resultFileWriter.write("\tType : " + type + " (" + types.get(type) + ")\n");
         //TraceManager.resultFileWriter.write("\tData : " + data + "\n");
     }
 
     public void nextLayer() {
         //Calls NextLayer
-        Layer3.toLayer(data);
+        Layer3.toLayer(data, type);
     }
 
     public String getDesAdr() {

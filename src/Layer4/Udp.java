@@ -32,19 +32,19 @@ public class Udp {
         }
 
         System.out.println("UDP : ");
-        System.out.println("\tSource port : " + srcPrt + "\n");
-        System.out.println("\tDestination port : " + desPrt + "\n");
-        System.out.println("\tLength : " + length + "\n");
-        System.out.println("\tChecksum : " + checkSum + "\n");
+        System.out.println("\tSource port : " + srcPrt + " (" + Integer.parseInt(srcPrt.replace(" ", ""), 16) + ")");
+        System.out.println("\tDestination port : " + desPrt + " (" + Integer.parseInt(desPrt.replace(" ", ""), 16) + ")");
+        System.out.println("\tLength : " + length + " (" + Integer.parseInt(length.replace(" ", ""), 16) + ")");
+        System.out.println("\tChecksum : " + checkSum);
         //System.out.println("\tdata (udp payload) : " + data + "\n");
 
     }
 
     public void writeResult() throws IOException {
         TraceManager.resultFileWriter.write("UDP : ");
-        TraceManager.resultFileWriter.write("\tSource port : " + srcPrt + "\n");
-        TraceManager.resultFileWriter.write("\tDestination port : " + desPrt + "\n");
-        TraceManager.resultFileWriter.write("\tLength : " + length + "\n");
+        TraceManager.resultFileWriter.write("\tSource port : " + srcPrt +" (" + Integer.parseInt(srcPrt.replace(" ", ""), 16) + ")"+ "\n");
+        TraceManager.resultFileWriter.write("\tDestination port : " + desPrt + " (" + Integer.parseInt(desPrt.replace(" ", ""), 16) + ")"+"\n");
+        TraceManager.resultFileWriter.write("\tLength : " + length + " (" + Integer.parseInt(length.replace(" ", ""), 16) + ")"+"\n");
         TraceManager.resultFileWriter.write("\tChecksum : " + checkSum + "\n");
         //TraceManager.resultFileWriter.write("\tdata (udp payload) : " + data + "\n");
 

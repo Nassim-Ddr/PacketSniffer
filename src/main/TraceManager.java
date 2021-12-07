@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class TraceManager {
@@ -32,16 +33,17 @@ public class TraceManager {
 
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             loadedFile = jfc.getSelectedFile();
-            cleanFile();
+            if (cleanFile()) {
+                createResultFile();
+                decodeTrace();
+            }
         }
 
-        createResultFile();
 
-        decodeTrace();
     }
 
     private static void createResultFile() {
-        resultFile = new File(loadedFile.getAbsolutePath().replace(".txt", "Decoded.txt"));
+        resultFile = new File(loadedFile.getAbsolutePath().replace(".txt", "_Decoded.txt"));
         try {
             resultFile.createNewFile();
         } catch (IOException e) {
@@ -55,11 +57,7 @@ public class TraceManager {
 
     }
 
-    private static void cleanFile() {
-        //Erreurs possible:
-            //- de 2 octs dans l'offset
-            //Les octes ne formes pas un rectangle (nbr d'octet de ligne en ligne differents)
-            //Erreurs dans l'offset
+    private static boolean cleanFile() {
         Scanner myReader = null;
         try {
             myReader = new Scanner(loadedFile);
@@ -68,31 +66,66 @@ public class TraceManager {
         }
         String data = "";
         boolean b = true;
-        while (myReader.hasNextLine() & b) {
+        String REGEX = "\\s{2,100}";
+
+        int oldOffset = 0;
+        int oldLineLength = 0;
+        int oldOffsetLength = 0;
+
+        while (myReader.hasNextLine()) {
             data = myReader.nextLine();
-            try {
-                if (data.length() > 4) {
-                    Integer.parseInt(data.substring(0, 3), 16);
-                    String tmp = data.split("  ")[1];
-                    tmp = tmp.split("   ")[0];
-                    if (data.startsWith("0000")) {
-                        tramesString.add(tmp + " ");
-                    } else {
-                        tramesString.set(tramesString.size() - 1, tramesString.get(tramesString.size() - 1) + tmp + " ");
-                    }
-                }
-            }
-            catch (NumberFormatException  e) {
+            String[] splits = data.split(REGEX);
 
+            //if (data.length()<5) continue;
+            if (!data.replace(" ", "").matches("[0-9a-f]{6,}+.+")) continue; //Permet de sauter les sauts de lignes et les lignes qui contiennent du text
+
+            String offset = splits[0];
+            String bytes = splits[1];
+            //System.out.println(bytes);
+
+            if (!offset.matches("-?[0-9a-f]+")) {
+                System.out.println("ERREUR : OFFSET NON HEX");
+                System.out.println(data);
+                return false;
+            }
+            if (!bytes.replace(" ", "").matches("-?[0-9a-f]+")) {
+                System.out.println("ERREUR : OCTET NON HEX");
+                System.out.println(data);
+                return false;
             }
 
+            int offsetInt = Integer.parseInt(offset, 16);
+            int lineLength = bytes.replace(" ", "").length() / 2;
+
+           if (offsetInt == 0) {
+               oldLineLength = lineLength;
+               oldOffsetLength = offset.length();
+               oldOffset = 0;
+               tramesString.add(bytes + " ");
+           }
+           else {
+               if (offsetInt != oldOffset + oldLineLength) {
+                   System.out.println("ERREUR : ERREUR VALEUR OFFSET");
+                   System.out.println(data);
+                   System.out.println("VALEUR ATTENDUE : " + Integer.toHexString(oldOffset + oldLineLength) + " (" + (oldOffset + oldLineLength) + ")");
+                   return false;
+               }
+
+               if (oldOffsetLength != offset.length()) {
+                   System.out.println("ERREUR : TAILLE OFFSET DIFFERENTS");
+                   System.out.println(data);
+                   System.out.println("TAILLE ANCIEN OFFSET : " + oldOffsetLength);
+                   return false;
+               }
+
+               tramesString.set(tramesString.size() - 1, tramesString.get(tramesString.size() - 1) + bytes + " ");
+               oldOffset = offsetInt;
+           }
 
         }
 
-        myReader.close();
-
-
-        //trames.forEach(s -> System.out.println(s));
+        //tramesString.forEach(s -> System.out.println(s)); //Permet d'afficher les trames chargé par l'application
+        return true;
     }
 
     public static void decodeTrace() {

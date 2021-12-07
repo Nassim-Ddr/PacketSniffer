@@ -1,0 +1,8 @@
+UTILISATION DE L'APPLICATION =========================================
+1-Exectuer le fichier .jar.
+2-Choisir le fichier trace dans la fenetre de selection.
+3-Le programme va afficher le resultat dans la console. 
+4-Sauvegarde automatiquement le resultat dans un fichier qui se trouves au meme endroit que le fichier trace.
+(ce fichier a la meme appelation que le fichier trace + le suffixe "_Decoded") 
+
+IMPORTANT : il faut que l'application ait accès au repertoire du fichier trace en lecture et en écriture. 

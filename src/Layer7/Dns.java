@@ -2,6 +2,7 @@ package Layer7;
 
 import main.TraceManager;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -155,6 +156,13 @@ public class Dns {
     }
 
     public void display() {
+
+        try {
+            writeResult();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         System.out.println("DNS : ");
         System.out.println("\tTransaction ID : " + transactionID);
         System.out.println("\tFlags : " + flags);
@@ -162,9 +170,9 @@ public class Dns {
         System.out.println("\tAnswer RRs : " + answerRRs + " (" + Integer.parseInt(answerRRs.replace(" ", ""), 16) +")");
         System.out.println("\tAuthority RRs : " + authorityRRs + " (" + Integer.parseInt(authorityRRs.replace(" ", ""), 16) +")");
         System.out.println("\tAdditional RRs : " + additionalRRs + " (" + Integer.parseInt(additionalRRs.replace(" ", ""), 16) +")");
+
+
         System.out.println("\tQueries : ");
-
-
         for (String[] query : queries) {
             System.out.println("\t\tName : "  + hexLabelsToAscii(query[0])+"   ("+ query[0]+ ")");
             System.out.println("\t\tType : " + query[1] + " =>" + recordTypes.get(query[1]));
@@ -193,7 +201,7 @@ public class Dns {
         System.out.println("\tAuthoritative name servers : ");
         i = 1;
         for (String[] autho : authoritative) {
-            System.out.println("\t\tAnswer : " + i);
+            System.out.println("\t\tAutho : " + i);
             System.out.println("\t\t\tName : " + autho[0] + "  ("+ hexLabelsToAscii(autho[0]) +")");
             System.out.println("\t\t\tType : " + autho[1]+ " =>" + recordTypes.get(autho[1]));
             System.out.println("\t\t\tClass : " + autho[2]);
@@ -213,7 +221,7 @@ public class Dns {
         System.out.println("\tAdditional records : ");
         i = 1;
         for (String[] add : additional) {
-            System.out.println("\t\tAnswer : " + i);
+            System.out.println("\t\tAdditional record : " + i);
             System.out.println("\t\t\tName : " + add[0] + "  ("+ hexLabelsToAscii(add[0]) +")");
             System.out.println("\t\t\tType : " + add[1]+ " =>" + recordTypes.get(add[1]));
             System.out.println("\t\t\tClass : " + add[2]);
@@ -228,8 +236,78 @@ public class Dns {
         }
     }
 
-    public void writeResults() {
+    public void writeResult() throws IOException {
+        TraceManager.resultFileWriter.write("DNS : " + "\n");
+        TraceManager.resultFileWriter.write("\tTransaction ID : " + transactionID + "\n");
+        TraceManager.resultFileWriter.write("\tFlags : " + flags + "\n");
+        TraceManager.resultFileWriter.write("\tQuestions : " + questions + " (" + Integer.parseInt(questions.replace(" ", ""), 16) +")" + "\n");
+        TraceManager.resultFileWriter.write("\tAnswer RRs : " + answerRRs + " (" + Integer.parseInt(answerRRs.replace(" ", ""), 16) +")" + "\n");
+        TraceManager.resultFileWriter.write("\tAuthority RRs : " + authorityRRs + " (" + Integer.parseInt(authorityRRs.replace(" ", ""), 16) +")" + "\n");
+        TraceManager.resultFileWriter.write("\tAdditional RRs : " + additionalRRs + " (" + Integer.parseInt(additionalRRs.replace(" ", ""), 16) +")" + "\n");
+        TraceManager.resultFileWriter.write("\tQueries : " + "\n");
 
+
+        for (String[] query : queries) {
+            TraceManager.resultFileWriter.write("\t\tName : "  + hexLabelsToAscii(query[0])+"   ("+ query[0]+ ")" + "\n");
+            TraceManager.resultFileWriter.write("\t\tType : " + query[1] + " =>" + recordTypes.get(query[1]) + "\n");
+            TraceManager.resultFileWriter.write("\t\tClass : " + query[2] + "\n");
+        }
+
+
+        TraceManager.resultFileWriter.write("\tAnswers : \n");
+        int i = 1;
+        for (String[] answer : answers) {
+            TraceManager.resultFileWriter.write("\t\tAnswer : " + i + "\n");
+            TraceManager.resultFileWriter.write("\t\t\tName : " + answer[0] + "  ("+ hexLabelsToAscii(answer[0]) +")" + "\n");
+            TraceManager.resultFileWriter.write("\t\t\tType : " + answer[1]+ " =>" + recordTypes.get(answer[1]) + "\n");
+            TraceManager.resultFileWriter.write("\t\t\tClass : " + answer[2] + "\n");
+            TraceManager.resultFileWriter.write("\t\t\tTtl : " + answer[3] + "  (" + Integer.parseInt(answer[3].replace(" ", ""), 16) + ")" + "\n");
+            TraceManager.resultFileWriter.write("\t\t\tData length : " + answer[4] + "\n");
+            if (answer[1].equals("00 01"))
+                TraceManager.resultFileWriter.write("\t\t\tData : " + answer[5] + "(" + TraceManager.hexToIP(answer[5])+")\n");
+            else if (answer[1].equals("00 01") || answer[1].equals("00 02") || answer[1].equals("00 05"))
+                TraceManager.resultFileWriter.write("\t\t\tData : " + answer[5] + "(" + hexLabelsToAscii(answer[5])+")\n");
+            else TraceManager.resultFileWriter.write("\t\t\tData : " + answer[5]+"\n");
+            i++;
+        }
+
+
+        TraceManager.resultFileWriter.write("\tAuthoritative name servers : \n");
+        i = 1;
+        for (String[] autho : authoritative) {
+            TraceManager.resultFileWriter.write("\t\tAutho : " + i + "\n");
+            TraceManager.resultFileWriter.write("\t\t\tName : " + autho[0] + "  ("+ hexLabelsToAscii(autho[0]) +")" + "\n");
+            TraceManager.resultFileWriter.write("\t\t\tType : " + autho[1]+ " =>" + recordTypes.get(autho[1]) + "\n");
+            TraceManager.resultFileWriter.write("\t\t\tClass : " + autho[2] + "\n");
+            TraceManager.resultFileWriter.write("\t\t\tTtl : " + autho[3] + "  (" + Integer.parseInt(autho[3].replace(" ", ""), 16) + ")" + "\n");
+            TraceManager.resultFileWriter.write("\t\t\tData length : " + autho[4] + "\n");
+
+            if (autho[1].equals("00 01"))
+                TraceManager.resultFileWriter.write("\t\t\tData : " + autho[5] + "(" + TraceManager.hexToIP(autho[5])+")\n");
+            else if (autho[1].equals("00 01") || autho[1].equals("00 02"))
+                TraceManager.resultFileWriter.write("\t\t\tData : " + autho[5] + "(" + hexLabelsToAscii(autho[5])+")\n");
+            else TraceManager.resultFileWriter.write("\t\t\tData : " + autho[5] + "\n");
+
+            i++;
+        }
+
+
+        TraceManager.resultFileWriter.write("\tAdditional records : \n");
+        i = 1;
+        for (String[] add : additional) {
+            TraceManager.resultFileWriter.write("\t\tAdditional record : " + i + "\n");
+            TraceManager.resultFileWriter.write("\t\t\tName : " + add[0] + "  ("+ hexLabelsToAscii(add[0]) +")" + "\n");
+            TraceManager.resultFileWriter.write("\t\t\tType : " + add[1]+ " =>" + recordTypes.get(add[1]) + "\n");
+            TraceManager.resultFileWriter.write("\t\t\tClass : " + add[2] + "\n");
+            TraceManager.resultFileWriter.write("\t\t\tTtl : " + add[3] + "  (" + Integer.parseInt(add[3].replace(" ", ""), 16) + ")" + "\n");
+            TraceManager.resultFileWriter.write("\t\t\tData length : " + add[4] + "\n");
+            if (add[1].equals("00 01"))
+                TraceManager.resultFileWriter.write("\t\t\tData : " + add[5] + "(" + TraceManager.hexToIP(add[5])+")\n");
+            else if (add[1].equals("00 01") || add[1].equals("00 02"))
+                TraceManager.resultFileWriter.write("\t\t\tData : " + add[5] + "(" + hexLabelsToAscii(add[5])+")"+"\n");
+            else TraceManager.resultFileWriter.write("\t\t\tData : " + add[5]+"\n");
+            i++;
+        }
     }
 
     private String hexLabelsToAscii(String hexStr) {
@@ -263,37 +341,6 @@ public class Dns {
         if (output.charAt(output.length()-1) == '.') output.deleteCharAt(output.length()-1);
         return output.toString();
     }
-
-    /*
-    * StringBuilder output = new StringBuilder("");
-        String hexseq = hexStr.replace(" ", "");
-
-        int i = 0;
-        while( i < hexseq.length()) {
-            String str = hexseq.substring(i, i+2);
-            if (str.charAt(0) == 'c') {
-                int offSet = Integer.parseInt(hexseq.substring(i+1, i+4), 16) + 1;
-                int index = 1;
-                while (!TraceManager.getByte(trame, index + offSet).equals("00")) index++;
-                String offsetStr = TraceManager.getByteInRange(trame, offSet + 1, offSet+index - 1);
-                output.append("."+hexLabelsToAscii(offsetStr));
-                i += 4;
-            }
-            else {
-                char c = (char) Integer.parseInt(str, 16);
-
-                if (Character.isLetterOrDigit(c))
-                    output.append(c);
-                else output.append('.');
-
-            }
-            i += 2;
-        }
-        if (output.charAt(0) == '.') output.deleteCharAt(0);
-        if (output.charAt(output.length()-1) == '.') output.deleteCharAt(output.length()-1);
-        return output.toString();*/
-
-
 
     public void nextLayer() {
 
